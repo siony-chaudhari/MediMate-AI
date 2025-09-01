@@ -356,9 +356,9 @@ class _RemindersScreenState extends State<RemindersScreen> {
               value: isCompleted,
               onChanged: (value) {
                 if (value) {
-                  reminderProvider.markReminderAsTaken(reminder.id);
+                  Provider.of<ReminderProvider>(context, listen: false).markReminderAsTaken(reminder.id);
                 } else {
-                  reminderProvider.markReminderAsMissed(reminder.id);
+                  Provider.of<ReminderProvider>(context, listen: false).markReminderAsMissed(reminder.id);
                 }
               },
               activeColor: AppColors.success,
