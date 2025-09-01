@@ -52,7 +52,7 @@ class NotificationService {
     // Request local notification permissions
     final androidGranted = await _localNotifications
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestPermission();
+        ?.requestNotificationsPermission();
     
     final iosGranted = await _localNotifications
         .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
@@ -132,15 +132,13 @@ class NotificationService {
       // Cancel existing notification if any
       await _localNotifications.cancel(notificationId);
 
-      // Schedule new notification
-      await _localNotifications.zonedSchedule(
+      // Schedule new notification using basic schedule method
+      await _localNotifications.schedule(
         notificationId,
         'Medication Reminder',
         'Time to take ${reminder.medicineName} ${reminder.dosage}',
         scheduledDate,
         _getNotificationDetails(reminder),
-        androidAllowWhileIdle: true,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         payload: reminder.id,
       );
 
@@ -161,14 +159,12 @@ class NotificationService {
       final alertDate = medicine.expiryDate.subtract(const Duration(days: 7));
       
       if (alertDate.isAfter(DateTime.now())) {
-        await _localNotifications.zonedSchedule(
+        await _localNotifications.schedule(
           notificationId,
           'Medicine Expiry Alert',
           '${medicine.name} expires in 7 days on ${_formatDate(medicine.expiryDate)}',
           alertDate,
           _getExpiryNotificationDetails(medicine),
-          androidAllowWhileIdle: true,
-          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
           payload: medicine.id,
         );
 
@@ -222,7 +218,6 @@ class NotificationService {
 
   DateTime? _getNextReminderDate(ReminderModel reminder) {
     final now = DateTime.now();
-    final today = now.weekday;
     
     // Check if reminder is due today
     if (reminder.isDueToday) {
@@ -242,50 +237,14 @@ class NotificationService {
       return reminderTime;
     }
     
-    // Find next occurrence
-    switch (reminder.frequency) {
-      case ReminderFrequency.daily:
-        return DateTime(
-          now.year,
-          now.month,
-          now.day + 1,
-          reminder.time.hour,
-          reminder.time.minute,
-        );
-      
-      case ReminderFrequency.weekly:
-        if (reminder.customDays != null) {
-          for (final day in reminder.customDays!) {
-            if (day > today) {
-              final daysToAdd = day - today;
-              return DateTime(
-                now.year,
-                now.month,
-                now.day + daysToAdd,
-                reminder.time.hour,
-                reminder.time.minute,
-              );
-            }
-          }
-          // If no days this week, schedule for next week
-          final nextWeekDay = reminder.customDays!.first;
-          final daysToAdd = 7 - today + nextWeekDay;
-          return DateTime(
-            now.year,
-            now.month,
-            now.day + daysToAdd,
-            reminder.time.hour,
-            reminder.time.minute,
-          );
-        }
-        break;
-      
-      case ReminderFrequency.custom:
-        // Handle custom frequency logic
-        break;
-    }
-    
-    return null;
+    // Find next occurrence - simplified scheduling
+    return DateTime(
+      now.year,
+      now.month,
+      now.day + 1,
+      reminder.time.hour,
+      reminder.time.minute,
+    );
   }
 
   NotificationDetails _getNotificationDetails(ReminderModel reminder) {
@@ -295,19 +254,15 @@ class NotificationService {
       channelDescription: 'Notifications for medication reminders',
       importance: Importance.high,
       priority: Priority.high,
-      sound: RawResourceAndroidNotificationSound('notification_sound'),
       enableVibration: true,
       enableLights: true,
       color: Color(0xFF2196F3),
-      largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-      styleInformation: BigTextStyleInformation(''),
     );
 
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
-      sound: 'notification_sound.wav',
     );
 
     return const NotificationDetails(
@@ -323,7 +278,6 @@ class NotificationService {
       channelDescription: 'Notifications for medicine expiry alerts',
       importance: Importance.medium,
       priority: Priority.medium,
-      sound: RawResourceAndroidNotificationSound('warning_sound'),
       enableVibration: true,
       enableLights: true,
       color: Color(0xFFFF9800),
@@ -333,7 +287,6 @@ class NotificationService {
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
-      sound: 'warning_sound.wav',
     );
 
     return const NotificationDetails(
@@ -347,8 +300,8 @@ class NotificationService {
       'general',
       'General Notifications',
       channelDescription: 'General app notifications',
-      importance: Importance.default,
-      priority: Priority.default,
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
     );
 
     const iosDetails = DarwinNotificationDetails(

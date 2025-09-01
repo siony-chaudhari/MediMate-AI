@@ -1,12 +1,8 @@
 import 'dart:io';
-import 'dart:typed_data';
-import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class OCRService {
-  static const String _tesseractDataPath = 'assets/tessdata';
-  
   // Medicine name patterns
   static const List<String> _medicinePatterns = [
     r'\b(?:tablet|pill|capsule|syrup|injection|cream|ointment|gel|drops|spray)\b',
@@ -33,11 +29,8 @@ class OCRService {
 
   Future<Map<String, dynamic>?> extractMedicineInfo(File imageFile) async {
     try {
-      // Preprocess image
-      final processedImage = await _preprocessImage(imageFile);
-      
-      // Extract text using OCR
-      final extractedText = await _performOCR(processedImage);
+      // Simplified OCR implementation without complex image processing
+      final extractedText = await _performOCR(imageFile);
       
       // Parse extracted information
       return _parseMedicineInfo(extractedText);
@@ -47,86 +40,10 @@ class OCRService {
     }
   }
 
-  Future<File> _preprocessImage(File imageFile) async {
-    try {
-      // Read image
-      final bytes = await imageFile.readAsBytes();
-      final image = img.decodeImage(bytes);
-      
-      if (image == null) throw Exception('Failed to decode image');
-      
-      // Convert to grayscale
-      final grayscale = img.grayscale(image);
-      
-      // Apply Gaussian blur to reduce noise
-      final blurred = img.gaussianBlur(grayscale, radius: 1);
-      
-      // Apply adaptive threshold for better text recognition
-      final thresholded = _applyAdaptiveThreshold(blurred);
-      
-      // Enhance contrast
-      final enhanced = img.contrast(thresholded, 150);
-      
-      // Save processed image
-      final tempDir = await getTemporaryDirectory();
-      final processedPath = '${tempDir.path}/processed_medicine_${DateTime.now().millisecondsSinceEpoch}.png';
-      
-      final processedFile = File(processedPath);
-      await processedFile.writeAsBytes(img.encodePng(enhanced));
-      
-      return processedFile;
-    } catch (e) {
-      print('Image preprocessing failed: $e');
-      return imageFile; // Return original if preprocessing fails
-    }
-  }
-
-  img.Image _applyAdaptiveThreshold(img.Image image) {
-    // Simple adaptive threshold implementation
-    final width = image.width;
-    final height = image.height;
-    final result = img.Image(width: width, height: height);
-    
-    const windowSize = 15;
-    const threshold = 0.1;
-    
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        // Calculate local mean
-        int sum = 0;
-        int count = 0;
-        
-        for (int wy = -windowSize ~/ 2; wy <= windowSize ~/ 2; wy++) {
-          for (int wx = -windowSize ~/ 2; wx <= windowSize ~/ 2; wx++) {
-            final ny = y + wy;
-            final nx = x + wx;
-            
-            if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
-              sum += image.getPixel(nx, ny).r;
-              count++;
-            }
-          }
-        }
-        
-        final localMean = sum / count;
-        final pixel = image.getPixel(x, y);
-        final gray = pixel.r;
-        
-        // Apply threshold
-        final newValue = gray < localMean * (1 - threshold) ? 0 : 255;
-        result.setPixel(x, y, img.ColorRgb8(newValue, newValue, newValue));
-      }
-    }
-    
-    return result;
-  }
-
   Future<String> _performOCR(File imageFile) async {
     try {
-      // This is a placeholder for actual Tesseract integration
-      // In a real implementation, you would use the tesseract_ocr package
-      
-      // For now, return a mock response
+      // Mock OCR implementation for demo purposes
+      // In a real app, you would integrate with actual OCR services
       return _getMockOCRResult();
     } catch (e) {
       print('OCR failed: $e');

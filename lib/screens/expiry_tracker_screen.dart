@@ -12,7 +12,7 @@ class ExpiryTrackerScreen extends StatefulWidget {
   State<ExpiryTrackerScreen> createState() => _ExpiryTrackerScreenState();
 }
 
-class _ExpiryTrackerScreen extends State<ExpiryTrackerScreen> {
+class _ExpiryTrackerScreenState extends State<ExpiryTrackerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -345,7 +345,7 @@ class _ExpiryTrackerScreen extends State<ExpiryTrackerScreen> {
     if (medicine.isExpired) {
       return 'Exp. ${DateFormat('MM/yyyy').format(medicine.expiryDate)}';
     } else if (medicine.isExpiringSoon) {
-      return 'Predicted expiry in ${medicine.daysUntilExpiry} days';
+      return 'Expires in ${medicine.daysUntilExpiry} days';
     } else {
       return 'Exp. ${DateFormat('MM/yyyy').format(medicine.expiryDate)}';
     }

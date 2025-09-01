@@ -7,7 +7,6 @@ import 'package:medimate_ai/providers/medicine_provider.dart';
 import 'package:medimate_ai/providers/chat_provider.dart';
 import 'package:medimate_ai/screens/splash_screen.dart';
 import 'package:medimate_ai/utils/constants.dart';
-
 import 'package:medimate_ai/firebase_options.dart';
 
 void main() async {
@@ -39,7 +38,6 @@ class MediMateAI extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
           primaryColor: AppColors.primary,
-          fontFamily: 'Poppins',
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(
             seedColor: AppColors.primary,
