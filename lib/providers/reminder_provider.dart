@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:medimate_ai/models/reminder_model.dart';
-import 'package:medimate_ai/models/user_model.dart';
+import '/models/reminder_model.dart';
+import '/models/user_model.dart';
 
 class ReminderProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
